@@ -11,6 +11,7 @@ A [Dev Console](https://www.nexusmods.com/battlebrothers/mods/380?tab=posts) mod
 - When pressing enter, the Input in the console is executed with the [eval()](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/eval) JavaScript function. So you basicaly can't execute Squirrel code directly. You will have to create a connection between JavaScript and Squirrel before in your own mod.
 - Pressing ALT toggle DOM debug which create a tooltips containing the Id and the class of the current hovered HTML element in this format : `#[id] .[class]`.
 - Customize some keys related to console mod in Mod Options menu.
+- Arrow up and down when the console input is focused to retreive previous commands.
 - In Squirrel add a global `::Console` which can be used like this `::Console.log("test")` to log to the console that you can see in the upper screenshot.
 
 ## **Dependencies**
