@@ -1,0 +1,1 @@
+::Console.Mod <- ::MSU.Class.Mod(::Console.ID, ::Console.Version, ::Console.Name);

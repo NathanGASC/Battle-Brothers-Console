@@ -1,0 +1,81 @@
+#console{
+    position: absolute;
+    width: 508px;
+    height: 568px;
+	background-image: url("coui://gfx/ui/skin/dialog_panel_01.png");
+	z-index: 100 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    left: 0;
+    transition: 0.5s;
+}
+
+#logWrapper{
+    width: 90%;
+    height: calc(90% - 40px);
+}
+
+.invisible{
+    transform: translateX(-1000px);
+}
+
+.message{
+    color: white;
+	font-family: monospace, arial;
+	font-size: 20;
+    word-wrap: break-word;
+}
+
+#cmdInput{
+    width: 90%;
+	height: 40px;
+    padding-left: 0.6rem;
+	position: relative;
+
+	background-color: rgba(0, 0, 0, 0);
+	border: none;
+
+    background-image: url("coui://gfx/ui/skin/text_input_300x40_default.png");
+    background-size: 100% 40px;
+    background-repeat: no-repeat;
+
+    outline: none;
+
+	text-shadow: 1px 1px 1px #000;
+
+    -moz-user-select: -moz-text;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+#cmdInput:hover,
+#cmdInput:focus
+{
+    /*border-color: rgb(129, 50, 24);*/
+    background-image: url("coui://gfx/ui/skin/text_input_300x40_selected.png");
+    background-size: 100% 40px;
+    background-repeat: no-repeat;
+}
+
+[title]::after {
+    all: unset !important;
+    content: attr(title) !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    background-color: white !important;
+    color: black !important;
+    font-size: 20px !important;
+    text-shadow: none !important;
+    z-index: 10000 !important;
+}
+
+#uniqueInfo{
+    position: absolute;
+    background-color: white;
+    z-index: 9999999;
+    font-size: 20px;
+    transform: translateY(-100%);
+}
