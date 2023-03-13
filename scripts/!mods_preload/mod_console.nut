@@ -11,17 +11,16 @@
     ::mods_hookExactClass("ui/screens/menu/modules/main_menu_module", function(o)
     {
         local connectBackend = o.connectBackend;
-
-        local logInfo = ::logInfo
-        ::logInfo <- function(msg) {
-            logInfo(msg)
-            ::Console.log(msg)
-        }
-        
         o.connectBackend <- function()
         {
             ::Console.connect();
             connectBackend()
+
+            local logInfo = ::logInfo
+            ::logInfo <- function(msg) {
+                logInfo(msg)
+                ::Console.log(msg)
+            }
         }
     });
 });

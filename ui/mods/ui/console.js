@@ -4,6 +4,7 @@ var Console = function () {
 	this.mLogContainer = null
 	this.mContainer = null
 	this.scrollableContainer = null
+	this.mInput = null
 
 	this.cmdHistory = []
 	this.cmdIndex = 0;
@@ -27,27 +28,27 @@ Console.prototype.create = function (_parentDiv) {
 	this.scrollableContainer = logWrapper.createList(1, 'content-container')
 	this.mLogContainer = logWrapper.findListScrollContainer();
 
-	var input = $('<input id=cmdInput type="text" class="text-font-small font-bold font-color-brother-name" placeholder="Type command..."></input>');
-	this.mContainer.append(input)
+	this.mInput = $('<input id=cmdInput type="text" class="text-font-small font-bold font-color-brother-name" placeholder="Type command..."></input>');
+	this.mContainer.append(this.mInput)
 
 	$('#cmdInput').keyup(function (e) {
 		var charFromMap = keyCodeToString(e.which)
 		switch (charFromMap) {
 			case "Up Arrow":
 				if (this.cmdIndex + 1 <= 0) return;
-				input.val(this.cmdHistory[--this.cmdIndex])
+				this.mInput.val(this.cmdHistory[--this.cmdIndex])
 				break;
 			case "Down Arrow":
 				if (this.cmdIndex + 1 > this.cmdHistory.length) return;
 				if (this.cmdIndex + 1 == this.cmdHistory.length) {
-					input.val("")
+					this.mInput.val("")
 				} else {
-					input.val(this.cmdHistory[++this.cmdIndex])
+					this.mInput.val(this.cmdHistory[++this.cmdIndex])
 				}
 				break;
 			case "Enter":
 				try {
-					var command = input.val()
+					var command = this.mInput.val()
 					command = command.replace(/[\u0127]/g, '');
 					command = command.replace(/\u0127/g, '');
 					command = command.replace("", '');
@@ -56,8 +57,8 @@ Console.prototype.create = function (_parentDiv) {
 				} catch (error) {
 					console.error(error.toString())
 				}
-				this.cmdHistory.push(input.val())
-				input.val("");
+				this.cmdHistory.push(this.mInput.val())
+				this.mInput.val("");
 				this.cmdIndex = this.cmdHistory.length;
 				break;
 			default:
@@ -100,8 +101,10 @@ Console.prototype.toggleVisibility = function () {
 
 	if (isVisible) {
 		$("#console").addClass("invisible")
+		$(this.mInput).blur()
 	} else {
 		$("#console").removeClass("invisible")
+		$(this.mInput).focus()
 	}
 };
 
@@ -254,7 +257,6 @@ function keyCodeToString(keyCode) {
 		222: "Single Quote"
 	};
 
-	// Vérifiez si la clé existe dans l'objet keyMap
 	if (keyMap.hasOwnProperty(keyCode)) {
 		return keyMap[keyCode];
 	} else {
