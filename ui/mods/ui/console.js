@@ -15,6 +15,20 @@ var Console = function () {
 Console.prototype.onConnection = function (_handle) {
 	this.create($('.root-screen'));
 	this.mSQHandle = _handle;
+
+	window.console = (function () {
+		function Logger() {
+		}
+		Logger.prototype.log = this.log.bind(this)
+		Logger.prototype.warn = this.warn.bind(this)
+		Logger.prototype.error = this.error.bind(this)
+		Logger.prototype.debug = this.debug.bind(this)
+		Logger.prototype.info = this.info.bind(this)
+
+		return new Logger();
+	}.bind(this)());
+
+	console.log("Console overwrited")
 }
 
 Console.prototype.create = function (_parentDiv) {
@@ -66,18 +80,6 @@ Console.prototype.create = function (_parentDiv) {
 		}
 	}.bind(this));
 
-	console = (function () {
-		function Logger() {
-		}
-		Logger.prototype.log = this.log.bind(this)
-		Logger.prototype.warn = this.warn.bind(this)
-		Logger.prototype.error = this.error.bind(this)
-		Logger.prototype.debug = this.debug.bind(this)
-		Logger.prototype.info = this.info.bind(this)
-
-		return new Logger();
-	}.bind(this)());
-
 	$(document.body).mousemove(function (ev) {
 		if(this.isDomDebugActivated){
 			$("#uniqueInfo").css("display", "block")
@@ -113,31 +115,36 @@ Console.prototype.toggleDomDebug = function () {
 }
 
 Console.prototype.log = function (msg) {
-	var elem = $("<div class=message style='color:white'>" + msg + "</div>")
+	var elem = $("<div class=message style='color:white'></div>")
+	$(elem).text(msg)
 	this.mLogContainer.append(elem);
 	this.scrollableContainer.scrollListToElement(elem)
 }
 
 Console.prototype.info = function (msg) {
-	var elem = $("<div class=message style='color:gray'>" + msg + "</div>")
+	var elem = $("<div class=message style='color:gray'></div>")
+	$(elem).text(msg)
 	this.mLogContainer.append(elem);
 	this.scrollableContainer.scrollListToElement(elem)
 }
 
 Console.prototype.error = function (msg) {
-	var elem = $("<div class=message style='color:red'>" + msg + "</div>")
+	var elem = $("<div class=message style='color:red'></div>")
+	$(elem).text(msg)
 	this.mLogContainer.append(elem);
 	this.scrollableContainer.scrollListToElement(elem)
 }
 
 Console.prototype.warn = function (msg) {
-	var elem = $("<div class=message style='color:yellow'>" + msg + "</div>")
+	var elem = $("<div class=message style='color:yellow'></div>")
+	$(elem).text(msg)
 	this.mLogContainer.append(elem);
 	this.scrollableContainer.scrollListToElement(elem)
 }
 
 Console.prototype.debug = function (msg) {
-	var elem = $("<div class=message style='color:white'>" + msg + "</div>")
+	var elem = $("<div class=message style='color:white'></div>")
+	$(elem).text(msg)
 	this.mLogContainer.append(elem);
 	this.scrollableContainer.scrollListToElement(elem)
 }

@@ -10,7 +10,7 @@ this.console <- {
 	function connect()
 	{
 		this.m.JSHandle = ::UI.connect("Console", this);
-		this.log("Console connected")
+		this.log("Console SQ connected to Console JS")
 	}
 
 	function toggleVisibility()

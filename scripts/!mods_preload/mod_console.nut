@@ -14,13 +14,14 @@
         o.connectBackend <- function()
         {
             ::Console.connect();
-            connectBackend()
-
+            
             local logInfo = ::logInfo
             ::logInfo <- function(msg) {
                 logInfo(msg)
                 ::Console.log(msg)
             }
+            
+            connectBackend()
         }
     });
 });
