@@ -81,13 +81,11 @@ Console.prototype.create = function (_parentDiv) {
 	$(document.body).mousemove(function (ev) {
 		if(this.isDomDebugActivated){
 			$("#uniqueInfo").css("display", "block")
-			$("#uniqueInfo").text("#" + ev.target.id + " ." + ev.target.className)
+			$("#uniqueInfo").text($(ev.target).clone().children().remove().end()[0].outerHTML)
 			$("#uniqueInfo").css("top", ev.clientY - 5)
 			$("#uniqueInfo").css("left", ev.clientX)
 		}
 	}.bind(this))
-
-	this.log("console initialized")
 };
 
 Console.prototype.toggleVisibility = function () {
