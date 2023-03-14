@@ -21,6 +21,12 @@
                 ::Console.log(msg)
             }
             
+            local logDebug = ::logDebug
+            ::logDebug <- function(msg) {
+                logDebug(msg)
+                ::Console.log(msg)
+            }
+            
             connectBackend()
         }
     });
