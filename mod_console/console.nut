@@ -42,4 +42,10 @@ this.console <- {
     function warn(msg) {
 		this.m.JSHandle.asyncCall("warn",msg);
     }
+
+	//
+
+	function reverseLog(msg) {
+		logDebug(msg)
+	}
 };

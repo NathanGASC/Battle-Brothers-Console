@@ -10,151 +10,209 @@ var Console = function () {
 	this.cmdIndex = 0;
 
 	this.isDomDebugActivated = false;
+	this.domDebugIndex = 0;
+	this.isVisible = false
+
+	this.logs = []
 }
 
 Console.prototype.onConnection = function (_handle) {
-	this.create($('.root-screen'));
-	this.mSQHandle = _handle;
-
-	window.console = (function () {
-		function Logger() {
-		}
-		Logger.prototype.log = this.log.bind(this)
-		Logger.prototype.warn = this.warn.bind(this)
-		Logger.prototype.error = this.error.bind(this)
-		Logger.prototype.debug = this.debug.bind(this)
-		Logger.prototype.info = this.info.bind(this)
-
-		return new Logger();
-	}.bind(this)());
-
-	console.log("Console overwrited")
+	try{
+		this.create($('.root-screen'));
+		this.mSQHandle = _handle;
+	
+		window.console = this
+	
+		console.log("Console overwrited")
+	}catch(e){
+		console.error(e.toString())
+	}
 }
 
 Console.prototype.create = function (_parentDiv) {
-	$('.root-screen').append($("<div id=uniqueInfo></div>"))
+	try{
+		$('.root-screen').append($("<div id=uniqueInfo></div>"))
 
-	this.mContainer = $('<div id="console" class="invisible"/>');
-	_parentDiv.append(this.mContainer);
+		this.mContainer = $('<div id="console" class="invisible"/>');
+		_parentDiv.append(this.mContainer);
+	
+		var logWrapper = $('<div id="logWrapper"/>');
+		this.mContainer.append(logWrapper)
+		this.scrollableContainer = logWrapper.createList(1, 'content-container')
+		this.mLogContainer = logWrapper.findListScrollContainer();
+	
+		this.mInput = $('<input id=cmdInput type="text" class="text-font-small font-bold font-color-brother-name" placeholder="Type command..."></input>');
+		this.mContainer.append(this.mInput)
+	
+		$(document.body).keyup(function (e) {
+			var charFromMap = keyCodeToString(e.which)
+			switch (charFromMap) {
+				case "Up Arrow":
+					if (!this.isDomDebugActivated) return;
+					this.domDebugIndex++
+					break;
+				case "Down Arrow":
+					if (!this.isDomDebugActivated || this.domDebugIndex == 0) return;
+					this.domDebugIndex--
+					break;
+			}
+		}.bind(this))
 
-	var logWrapper = $('<div id="logWrapper"/>');
-	this.mContainer.append(logWrapper)
-	this.scrollableContainer = logWrapper.createList(1, 'content-container')
-	this.mLogContainer = logWrapper.findListScrollContainer();
-
-	this.mInput = $('<input id=cmdInput type="text" class="text-font-small font-bold font-color-brother-name" placeholder="Type command..."></input>');
-	this.mContainer.append(this.mInput)
-
-	$('#cmdInput').keyup(function (e) {
-		var charFromMap = keyCodeToString(e.which)
-		switch (charFromMap) {
-			case "Up Arrow":
-				if (this.cmdIndex + 1 <= 0) return;
-				this.mInput.val(this.cmdHistory[--this.cmdIndex])
-				break;
-			case "Down Arrow":
-				if (this.cmdIndex + 1 > this.cmdHistory.length) return;
-				if (this.cmdIndex + 1 == this.cmdHistory.length) {
-					this.mInput.val("")
-				} else {
-					this.mInput.val(this.cmdHistory[++this.cmdIndex])
-				}
-				break;
-			case "Enter":
-				try {
-					var command = this.mInput.val()
-					command = command.replace(/[\u0127]/g, '');
-					command = command.replace(/\u0127/g, '');
-					command = command.replace("", '');
-					command = command.replace(//g, '');
-					eval(command)
-				} catch (error) {
-					console.error(error.toString())
-				}
-				this.cmdHistory.push(this.mInput.val())
-				this.mInput.val("");
-				this.cmdIndex = this.cmdHistory.length;
-				break;
-			default:
-				break;
-		}
-	}.bind(this));
-
-	$(document.body).mousemove(function (ev) {
-		if(this.isDomDebugActivated){
-			$("#uniqueInfo").css("display", "block")
-			$("#uniqueInfo").text($(ev.target).clone().children().remove().end()[0].outerHTML)
-			$("#uniqueInfo").css("top", ev.clientY - 5)
-			$("#uniqueInfo").css("left", ev.clientX)
-		}
-	}.bind(this))
+		$(document.body).mousemove(function (ev) {
+			if(this.isDomDebugActivated){
+				const elem = getParentByLevel(ev.target, this.domDebugIndex)
+				$("#uniqueInfo").css("display", "block")
+				$("#uniqueInfo").text(this.domDebugIndex + " : " + elem.textContent)
+				$("#uniqueInfo").css("top", ev.clientY - 5)
+				$("#uniqueInfo").css("left", ev.clientX)
+			}
+		}.bind(this))
+	
+		$(document.body).click(function (ev){
+			if(this.isDomDebugActivated){
+				const elem = getParentByLevel(ev.target, this.domDebugIndex)
+				//console.reverseLog(elem.outerHTML)
+			}
+		}.bind(this))
+	}catch(e){
+		console.error(e.toString())
+	}
+	
 };
 
 Console.prototype.toggleVisibility = function () {
-	var classList = $("#console").attr("class")
-	classList = classList.split(" ")
-
-	var isVisible = false
-	if ($.inArray("invisible", classList) == -1) {
-		isVisible = true
-	}
-
-	if (isVisible) {
-		$("#console").addClass("invisible")
-		$(this.mInput).blur()
-	} else {
-		$("#console").removeClass("invisible")
-		$(this.mInput).focus()
+	try {
+		if (this.isVisible) {
+			$("#console").addClass("invisible")
+			$(this.mInput).blur()
+			this.isVisible = false
+			$(this.mLogContainer).text("")
+		} else {
+			$("#console").removeClass("invisible")
+			$(this.mInput).focus()
+			this.isVisible = true
+			this.build()
+		}
+	} catch (e) {
+		console.error(e)
 	}
 };
 
 Console.prototype.toggleDomDebug = function () {
-	this.isDomDebugActivated = !this.isDomDebugActivated
-	console.log("Toggle DOM Debug : " + this.isDomDebugActivated)
-	if(!this.isDomDebugActivated) $("#uniqueInfo").css("display", "none")
+	try {
+		this.isDomDebugActivated = !this.isDomDebugActivated
+		if(!this.isDomDebugActivated) $("#uniqueInfo").css("display", "none")
+		this.domDebugIndex = 0
+		console.log("Toggle DOM Debug : " + this.isDomDebugActivated)
+	} catch (e) {
+		console.error(e)
+	}
 }
 
 Console.prototype.log = function (msg) {
-	var elem = $("<div class=message style='color:white'></div>")
-	$(elem).text(msg)
-	this.mLogContainer.append(elem);
-	this.scrollableContainer.scrollListToElement(elem)
+	try{
+		this.addToLogs(this.msgTransform(msg), "log")
+		this.build()
+	}catch(e){
+		console.error(e)
+	}
+
 }
 
 Console.prototype.info = function (msg) {
-	var elem = $("<div class=message style='color:gray'></div>")
-	$(elem).text(msg)
-	this.mLogContainer.append(elem);
-	this.scrollableContainer.scrollListToElement(elem)
+	try{
+		this.addToLogs(this.msgTransform(msg), "info")
+		this.build()
+	}catch(e){
+		console.error(e)
+	}
 }
 
 Console.prototype.error = function (msg) {
-	var elem = $("<div class=message style='color:red'></div>")
-	$(elem).text(msg)
-	this.mLogContainer.append(elem);
-	this.scrollableContainer.scrollListToElement(elem)
+	try{
+		this.addToLogs(this.msgTransform(msg), "error")
+		this.build()
+	}catch(e){
+		console.reverseLog(e)
+	}
 }
 
 Console.prototype.warn = function (msg) {
-	var elem = $("<div class=message style='color:yellow'></div>")
-	$(elem).text(msg)
-	this.mLogContainer.append(elem);
-	this.scrollableContainer.scrollListToElement(elem)
+	try{
+		this.addToLogs(this.msgTransform(msg), "warn")
+		this.build()
+	}catch(e){
+		console.error(e)
+	}
 }
 
 Console.prototype.debug = function (msg) {
-	var elem = $("<div class=message style='color:white'></div>")
-	$(elem).text(msg)
-	this.mLogContainer.append(elem);
-	this.scrollableContainer.scrollListToElement(elem)
+	try{
+		this.addToLogs(this.msgTransform(msg), "debug")
+		this.build()
+	}catch(e){
+		console.error(e)
+	}
 }
 
-window.clear = function () {
-	$(".message").remove()
+Console.prototype.addToLogs = function (msg, type) {
+	this.logs.push({
+		type:type,
+		msg:msg
+	})
 }
 
-window.elementCount = function () {
-	return $("*").length
+Console.prototype.msgTransform = function (msg) {
+	msg = msg.replace(/"/gm,"")
+	return msg
+}
+
+Console.prototype.build = function () {
+	try{
+		if(!this.isVisible) return;
+
+		$(this.mLogContainer).text("")
+		var lastLog = null
+		this.logs.forEach(function (log) {
+			if(lastLog && $(lastLog).attr('data-type') == log.type){
+				lastLog.text(lastLog.text() + log.msg)
+			}else{
+				lastLog = $("<div class='message' data-type='" + log.type + "'></div>")
+				lastLog.text(log.msg)
+				$(console.mLogContainer).append(lastLog)
+			}
+		})
+	}catch(e){
+		console.error(e)
+	}
+
+}
+
+Console.prototype.reverseLog = function (msg) {
+	SQ.call(this.mSQHandle, 'reverseLog', msg);
+}
+
+Console.prototype.clear = function () {
+	try {
+		$(this.mLogContainer).text("")
+		this.logs = []
+	} catch (e) {
+		console.error(e)
+	}
+}
+
+Console.prototype.testLimit = function (size) {
+	try {
+		for (var index = 0; index < size/4; index++) {
+			console.log(index)
+			console.error(index)
+			console.warn(index)
+			console.debug(index)
+		}
+	} catch (e) {
+		console.error(e)
+	}
+
 }
 
 registerScreen("Console", new Console());
@@ -267,4 +325,16 @@ function keyCodeToString(keyCode) {
 	} else {
 		return "Unknown Key";
 	}
+}
+
+function escapeHTML(html) {
+	return html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function getParentByLevel(element, level) {
+	var parent = element;
+	for (var i = 0; i < level; i++) {
+		parent = parent.parentNode;
+	}
+	return parent;
 }

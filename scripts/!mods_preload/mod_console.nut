@@ -15,15 +15,15 @@
         {
             ::Console.connect();
             
-            local logInfo = ::logInfo
+            local oldLogInfo = ::logInfo
             ::logInfo <- function(msg) {
-                logInfo(msg)
+                oldLogInfo(msg)
                 ::Console.log(msg)
             }
             
-            local logDebug = ::logDebug
+            local oldLogDebug = ::logDebug
             ::logDebug <- function(msg) {
-                logDebug(msg)
+                oldLogDebug(msg)
                 ::Console.log(msg)
             }
             
