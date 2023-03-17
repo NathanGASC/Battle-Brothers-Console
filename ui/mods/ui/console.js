@@ -14,6 +14,7 @@ var Console = function () {
 	this.isVisible = false
 
 	this.logs = []
+	this.builderId = null
 }
 
 Console.prototype.onConnection = function (_handle) {
@@ -203,14 +204,22 @@ Console.prototype.msgTransform = function (msg) {
 }
 
 Console.prototype.build = function () {
+	if(this.builderId) clearTimeout(this.builderId);
 	try {
-		setTimeout(function () {
+		/**
+		 * This setTimeout at 0 isn't meaningless. It fix a bug when logs happen while loading screen is up.
+		 * The issue is probably related to the overload when loading screen is up and the browser can't keep
+		 * up the display. Having a setTimeout to 0 for some reason, will skip those messages while overloaded.
+		 * Not suere why to.
+		 */
+		this.builderId = setTimeout(function () {
 			if (!this.isVisible) return;
+			var logs = this.logs
 
 			$(this.mLogContainer).html("")
 			var lastLog = null
 	
-			this.logs.forEach(function (log) {
+			logs.forEach(function (log) {
 				if (lastLog && $(lastLog).attr('data-type') == log.type) {
 					lastLog.html(lastLog.html() + "</br>" + log.msg)
 				} else {
@@ -220,7 +229,6 @@ Console.prototype.build = function () {
 				}
 			})
 		}.bind(this),0)
-		
 	} catch (e) {
 		console.error(e)
 	}
