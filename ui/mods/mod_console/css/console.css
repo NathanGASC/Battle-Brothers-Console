@@ -66,3 +66,22 @@
     font-size: 20px;
     transform: translateY(-100%);
 }
+
+[data-type=error]{
+    color:red
+}
+[data-type=log]{
+    color:green
+}
+[data-type=debug]{
+    color:white
+}
+[data-type=error]{
+    color:red
+}
+[data-type=info]{
+    color:gray
+}
+[data-type=warn]{
+    color:gray
+}

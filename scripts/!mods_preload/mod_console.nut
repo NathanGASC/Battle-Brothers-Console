@@ -1,6 +1,6 @@
 ::Console <- ::new("mod_console/console.nut");
-::mods_registerJS("ui/console.js");
-::mods_registerCSS("ui/css/console.css");
+::mods_registerJS("mod_console/console.js");
+::mods_registerCSS("mod_console/css/console.css");
 
 ::mods_registerMod(::Console.ID, ::Console.Version "Display a console with logs");
 ::mods_queue(::Console.ID, ::MSU.ID, function()

@@ -15,6 +15,8 @@ var Console = function () {
 
 	this.logs = []
 	this.builderId = null
+
+	this.elementToScrollTo = $("<div></div>")
 }
 
 Console.prototype.onConnection = function (_handle) {
@@ -37,11 +39,10 @@ Console.prototype.create = function (_parentDiv) {
 		this.mContainer = $('<div id="console" class="invisible"/>');
 		_parentDiv.append(this.mContainer);
 
-		var logWrapper = $('<div id="logWrapper"/>');
-		this.mContainer.append(logWrapper)
-		// this.mLogContainer = logWrapper;
-		this.scrollableContainer = logWrapper.createList(1, 'content-container')
-		this.mLogContainer = logWrapper.findListScrollContainer();
+		this.logWrapper = $('<div id="logWrapper"/>');
+		this.mContainer.append(this.logWrapper)
+		this.scrollableContainer = this.logWrapper.createList(1, 'content-container')
+		this.mLogContainer = this.logWrapper.findListScrollContainer();
 
 		this.mInput = $('<input id=cmdInput type="text" class="text-font-small font-bold font-color-brother-name" placeholder="Type command..."></input>');
 		this.mContainer.append(this.mInput)
@@ -99,7 +100,7 @@ Console.prototype.create = function (_parentDiv) {
 			if (this.isDomDebugActivated) {
 				const elem = getParentByLevel(ev.target, this.domDebugIndex)
 				$("#uniqueInfo").css("display", "block")
-				$("#uniqueInfo").text(this.domDebugIndex + " : " + elem.textContent)
+				$("#uniqueInfo").text(this.domDebugIndex + " : " + elem.outerHTML)
 				$("#uniqueInfo").css("top", ev.clientY - 5)
 				$("#uniqueInfo").css("left", ev.clientX)
 			}
@@ -113,7 +114,6 @@ Console.prototype.create = function (_parentDiv) {
 	} catch (e) {
 		console.error(e.toString())
 	}
-
 };
 
 Console.prototype.toggleVisibility = function () {
@@ -225,9 +225,13 @@ Console.prototype.build = function () {
 				} else {
 					lastLog = $("<div class='message' data-type='" + log.type + "'></div>")
 					lastLog.html(log.msg)
-					$(console.mLogContainer).append(lastLog)
+					$(this.mLogContainer).append(lastLog)
 				}
-			})
+			}.bind(this))
+
+			$(this.scrollableContainer).append(this.elementToScrollTo)
+			$(this.scrollableContainer).scrollListToElement(this.elementToScrollTo)
+			$(this.elementToScrollTo).remove()
 		}.bind(this),0)
 	} catch (e) {
 		console.error(e)
