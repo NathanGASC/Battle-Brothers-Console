@@ -17,33 +17,34 @@ var Console = function () {
 }
 
 Console.prototype.onConnection = function (_handle) {
-	try{
+	try {
 		this.create($('.root-screen'));
 		this.mSQHandle = _handle;
-	
+
 		window.console = this
-	
+
 		console.log("Console overwrited")
-	}catch(e){
+	} catch (e) {
 		console.error(e.toString())
 	}
 }
 
 Console.prototype.create = function (_parentDiv) {
-	try{
+	try {
 		$('.root-screen').append($("<div id=uniqueInfo></div>"))
 
 		this.mContainer = $('<div id="console" class="invisible"/>');
 		_parentDiv.append(this.mContainer);
-	
+
 		var logWrapper = $('<div id="logWrapper"/>');
 		this.mContainer.append(logWrapper)
+		// this.mLogContainer = logWrapper;
 		this.scrollableContainer = logWrapper.createList(1, 'content-container')
 		this.mLogContainer = logWrapper.findListScrollContainer();
-	
+
 		this.mInput = $('<input id=cmdInput type="text" class="text-font-small font-bold font-color-brother-name" placeholder="Type command..."></input>');
 		this.mContainer.append(this.mInput)
-	
+
 		$(document.body).keyup(function (e) {
 			var charFromMap = keyCodeToString(e.which)
 			switch (charFromMap) {
@@ -58,8 +59,43 @@ Console.prototype.create = function (_parentDiv) {
 			}
 		}.bind(this))
 
+		$('#cmdInput').keyup(function (e) {
+			var charFromMap = keyCodeToString(e.which)
+			switch (charFromMap) {
+				case "Up Arrow":
+					if (this.cmdIndex + 1 <= 0) return;
+					this.mInput.val(this.cmdHistory[--this.cmdIndex])
+					break;
+				case "Down Arrow":
+					if (this.cmdIndex + 1 > this.cmdHistory.length) return;
+					if (this.cmdIndex + 1 == this.cmdHistory.length) {
+						this.mInput.val("")
+					} else {
+						this.mInput.val(this.cmdHistory[++this.cmdIndex])
+					}
+					break;
+				case "Enter":
+					try {
+						var command = this.mInput.val()
+						command = command.replace(/[\u0127]/g, '');
+						command = command.replace(/\u0127/g, '');
+						command = command.replace("", '');
+						command = command.replace(//g, '');
+						eval(command)
+					} catch (error) {
+						console.error(error.toString())
+					}
+					this.cmdHistory.push(this.mInput.val())
+					this.mInput.val("");
+					this.cmdIndex = this.cmdHistory.length;
+					break;
+				default:
+					break;
+			}
+		}.bind(this));
+
 		$(document.body).mousemove(function (ev) {
-			if(this.isDomDebugActivated){
+			if (this.isDomDebugActivated) {
 				const elem = getParentByLevel(ev.target, this.domDebugIndex)
 				$("#uniqueInfo").css("display", "block")
 				$("#uniqueInfo").text(this.domDebugIndex + " : " + elem.textContent)
@@ -67,17 +103,16 @@ Console.prototype.create = function (_parentDiv) {
 				$("#uniqueInfo").css("left", ev.clientX)
 			}
 		}.bind(this))
-	
-		$(document.body).click(function (ev){
-			if(this.isDomDebugActivated){
+
+		$(document.body).click(function (ev) {
+			if (this.isDomDebugActivated) {
 				const elem = getParentByLevel(ev.target, this.domDebugIndex)
-				//console.reverseLog(elem.outerHTML)
 			}
 		}.bind(this))
-	}catch(e){
+	} catch (e) {
 		console.error(e.toString())
 	}
-	
+
 };
 
 Console.prototype.toggleVisibility = function () {
@@ -101,7 +136,7 @@ Console.prototype.toggleVisibility = function () {
 Console.prototype.toggleDomDebug = function () {
 	try {
 		this.isDomDebugActivated = !this.isDomDebugActivated
-		if(!this.isDomDebugActivated) $("#uniqueInfo").css("display", "none")
+		if (!this.isDomDebugActivated) $("#uniqueInfo").css("display", "none")
 		this.domDebugIndex = 0
 		console.log("Toggle DOM Debug : " + this.isDomDebugActivated)
 	} catch (e) {
@@ -110,86 +145,85 @@ Console.prototype.toggleDomDebug = function () {
 }
 
 Console.prototype.log = function (msg) {
-	try{
+	try {
 		this.addToLogs(this.msgTransform(msg), "log")
 		this.build()
-	}catch(e){
+	} catch (e) {
 		console.error(e)
 	}
 
 }
 
 Console.prototype.info = function (msg) {
-	try{
+	try {
 		this.addToLogs(this.msgTransform(msg), "info")
 		this.build()
-	}catch(e){
+	} catch (e) {
 		console.error(e)
 	}
 }
 
 Console.prototype.error = function (msg) {
-	try{
+	try {
 		this.addToLogs(this.msgTransform(msg), "error")
 		this.build()
-	}catch(e){
-		console.reverseLog(e)
+	} catch (e) {
+		throw e
 	}
 }
 
 Console.prototype.warn = function (msg) {
-	try{
+	try {
 		this.addToLogs(this.msgTransform(msg), "warn")
 		this.build()
-	}catch(e){
+	} catch (e) {
 		console.error(e)
 	}
 }
 
 Console.prototype.debug = function (msg) {
-	try{
+	try {
 		this.addToLogs(this.msgTransform(msg), "debug")
 		this.build()
-	}catch(e){
+	} catch (e) {
 		console.error(e)
 	}
 }
 
 Console.prototype.addToLogs = function (msg, type) {
 	this.logs.push({
-		type:type,
-		msg:msg
+		type: type,
+		msg: msg
 	})
 }
 
 Console.prototype.msgTransform = function (msg) {
-	msg = msg.replace(/"/gm,"")
+	//msg = msg.replace(/"/gm, "")
 	return msg
 }
 
 Console.prototype.build = function () {
-	try{
-		if(!this.isVisible) return;
+	try {
+		setTimeout(function () {
+			if (!this.isVisible) return;
 
-		$(this.mLogContainer).text("")
-		var lastLog = null
-		this.logs.forEach(function (log) {
-			if(lastLog && $(lastLog).attr('data-type') == log.type){
-				lastLog.text(lastLog.text() + log.msg)
-			}else{
-				lastLog = $("<div class='message' data-type='" + log.type + "'></div>")
-				lastLog.text(log.msg)
-				$(console.mLogContainer).append(lastLog)
-			}
-		})
-	}catch(e){
+			$(this.mLogContainer).html("")
+			var lastLog = null
+	
+			this.logs.forEach(function (log) {
+				if (lastLog && $(lastLog).attr('data-type') == log.type) {
+					lastLog.html(lastLog.html() + "</br>" + log.msg)
+				} else {
+					lastLog = $("<div class='message' data-type='" + log.type + "'></div>")
+					lastLog.html(log.msg)
+					$(console.mLogContainer).append(lastLog)
+				}
+			})
+		}.bind(this),0)
+		
+	} catch (e) {
 		console.error(e)
 	}
-
-}
-
-Console.prototype.reverseLog = function (msg) {
-	SQ.call(this.mSQHandle, 'reverseLog', msg);
 }
 
 Console.prototype.clear = function () {
@@ -203,7 +237,7 @@ Console.prototype.clear = function () {
 
 Console.prototype.testLimit = function (size) {
 	try {
-		for (var index = 0; index < size/4; index++) {
+		for (var index = 0; index < size / 4; index++) {
 			console.log(index)
 			console.error(index)
 			console.warn(index)
@@ -328,7 +362,7 @@ function keyCodeToString(keyCode) {
 }
 
 function escapeHTML(html) {
-	return html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+	return html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function getParentByLevel(element, level) {

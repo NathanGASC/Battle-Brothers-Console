@@ -26,7 +26,7 @@
                 oldLogDebug(msg)
                 ::Console.log(msg)
             }
-            
+
             connectBackend()
         }
     });
