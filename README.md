@@ -9,10 +9,16 @@ A [Dev Console](https://www.nexusmods.com/battlebrothers/mods/380?tab=posts) mod
 ## **Functionality**
 - Pressing Tab to toggle console visibility at any moment (in menu or in game).
 - When pressing enter, the Input in the console is executed with the [eval()](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/eval) JavaScript function. So you basicaly can't execute Squirrel code directly. You will have to create a connection between JavaScript and Squirrel before in your own mod.
-- Pressing ALT toggle DOM debug which create a tooltips containing the Id and the class of the current hovered HTML element in this format : `#[id] .[class]`.
+- Pressing ALT toggle DOM debug which create a tooltips containing the HTML of the hovered element.
 - Customize some keys related to console mod in Mod Options menu.
 - Arrow up and down when the console input is focused to retreive previous commands.
+- Arrow up and down when DOM debug is activated to move to the parent element. You can repeat the process until you reach the HTML body.
 - In Squirrel add a global `::Console` which can be used like this `::Console.log("test")` to log to the console that you can see in the upper screenshot.
+- In frontend, console function has been replaced to log in the console.
+
+## **Optimisation**
+- Create the smalest number of element in the DOM
+- When removing the console from the screen using Tab, logs disapear and are not pushed in the DOM to avoid freeze when logging a lot
 
 ## **Dependencies**
 - [Modding Standards and Utilities (MSU)](https://www.nexusmods.com/battlebrothers/mods/479)
@@ -25,66 +31,49 @@ The game is devided in 2 languages, Javascript for the UI and Squirrel for the L
 - Javascript -> Squirrel
 - Squirrel -> Javascript
 
-To understand how it's work, a simple example is how I've done the `::Console` global variable, log to the console. Here my JavaScript class Console which is simplified for the understanding purpose.
+Here an example which use both bridge
 
 ```js
-var Console = function () {
+var MyMod = function () {
     //This variable will contain ur bridge JavaScript -> Squirrel.
 	this.mSQHandle = null
-	this.mID = "Console";
+	this.mID = "MyMod";
 }
 
-Console.prototype.onConnection = function (_handle) {
+MyMod.prototype.onConnection = function (_handle) {
 	this.create($('.root-screen'));
+	//I get my bridge and store it JS -> SQ
 	this.mSQHandle = _handle;
 
-    //I don't use mSQHandle in this version of Console mod so here an example on how to use it. SQ is defined globaly and exist in the current context. The first parameter is ur bridge, the second the Squirrel function to call, the third an array with the parameters for this squirrel function and finally the callback which is called after executing the desired Squirrel function.
-    SQ.call(this.mSQHandle, 'functionToCall', [param1, param2, ...], callback);
 }
 
-Console.prototype.create = function (_parentDiv) {
-    //create the console HTMLElement (setup the UI)
-};
-
-Console.prototype.toggleVisibility = function () {
-    //display/hide the console
-};
-
-Console.prototype.toggleDomDebug = function () {
-    //display/hide the DOM debug mod
+/**
+ * Send Ping to SQ code (backend)
+ */
+MyMod.prototype.sendPing = function (data) {
+    SQ.call(this.mSQHandle, 'recievePing', data, function(){
+		console.log("ACK : ping has been received by the backend")
+	});
 }
 
-Console.prototype.log = function (msg) {
-    //display a log in the console
+/**
+ * Method to recieve a pong from the backend
+ */
+MyMod.prototype.recievePong = function (_handle) {
+	console.log("I've received a Pong from backend")
 }
 
-Console.prototype.info = function (msg) {
-    //display an info in the console
-}
-
-Console.prototype.error = function (msg) {
-    //display an error in the console
-}
-
-Console.prototype.warn = function (msg) {
-    //display a warn in the console
-}
-
-Console.prototype.debug = function (msg) {
-    //display a debug in the console
-}
+...
 
 //Will register Console class with as ID: "Console". This ID will be used SQuirrel side to create a bridge SQuirrel -> JavaScript
-registerScreen("Console", new Console());
+registerScreen("MyMod", new Console());
 ```
 
-As we can see, we don't use bridge in this JavaScript code, but the important part is that we register the Console class with the "Console" ID. Now let's take a look at the Squirrel class Console which we want to make communicate with ur JavaScript Console class.
-
 ```js
-this.console <- {
-	ID = "mod_console",
+this.myMod <- {
+	ID = "mod_myMod",
 	Version = "1.0.0",
-	Name = "Console",
+	Name = "MyMod",
 
 	m = {
         //This variable will contain ur bridge SQuirrel -> JavaScript
@@ -93,40 +82,19 @@ this.console <- {
 
 	function connect()
 	{
-        //We connect "fetch" ur JavaScript class Console which have the id Console (first parameter) and put it in JSHandle
-		this.m.JSHandle = ::UI.connect("Console", this);
+        //We connect ur JavaScript class MyMod which have the id "MyMod" and put it in JSHandle
+		this.m.JSHandle = ::UI.connect("MyMod", this);
 	}
 
-	function toggleVisibility()
+	function sendPong()
 	{
-        //From now on we can call ur javascript class using JSHandle.
-		this.m.JSHandle.asyncCall("toggleVisibility","");
+		this.m.JSHandle.asyncCall("recievePong",null);
+		::Console.log("pong has been send to the frontend but we don't know when he will receive it")
 	}
 
-	function toggleDomDebug()
+	function recievePing()
 	{
-		this.m.JSHandle.asyncCall("toggleDomDebug","");
+		::Console.log("I've received a Ping from backend")
 	}
-
-	function log(msg) {
-		this.m.JSHandle.asyncCall("log",msg);
-	}
-
-    function info(msg) {
-		this.m.JSHandle.asyncCall("info",msg);
-    }
-
-    function debug(msg) {
-		this.m.JSHandle.asyncCall("debug",msg);
-    }
-
-    function error(msg) {
-		this.m.JSHandle.asyncCall("error",msg);
-    }
-
-    function warn(msg) {
-		this.m.JSHandle.asyncCall("warn",msg);
-    }
 };
 ```
-You can now use Squirrel Console class to log in the UI.
