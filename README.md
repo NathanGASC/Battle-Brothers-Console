@@ -16,7 +16,7 @@ A [Dev Console](https://www.nexusmods.com/battlebrothers/mods/380?tab=posts) mod
 - In Squirrel add a global `::Console` which can be used like this `::Console.log("test")` to log to the console that you can see in the upper screenshot.
 - In frontend, console function has been replaced to log in the console.
 
-## **Optimisation**
+## **optimization**
 - Create the smalest number of element in the DOM
 - When removing the console from the screen using Tab, logs disapear and are not pushed in the DOM to avoid freeze when logging a lot
 
